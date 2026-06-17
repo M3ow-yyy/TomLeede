@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>宿命回响-哈利波特</title>
+<style>
+:root {
+  --bg-deep: #16130e;
+  --bg-parchment: #f4ebd0;
+  --bg-card: #fdfaf2;
+  --bg-input: #ebe0c5;
+  --border: #c4b491;
+  --border-dark: #3a3121;
+  --text-primary: #2c2519;
+  --text-secondary: #6e5d47;
+  --text-dim: #948268;
+  --slytherin: #1a362b;
+  --gryffindor: #740001;
+  --gold: #bd924a;
+  --gold-light: #e5cc96;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: 'Cinzel', 'Georgia', 'Noto Serif SC', serif;
+  overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* 手机移动端主容器 */
+.app-container {
+  width: 100%;
+  max-width: 500px;
+  height: 100%;
+  margin: 0 auto;
+  background-color: var(--bg-parchment);
+  background-image: radial-gradient(rgba(189,146,74,0.08) 15%, transparent 16%);
+  background-size: 16px 16px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 0 30px rgba(0,0,0,0.8);
+  border-left: 1px solid var(--border-dark);
+  border-right: 1px solid var(--border-dark);
+}
+
+/* 顶部流式状态栏 */
+.app-header {
+  height: 60px;
+  background: var(--border-dark);
+  color: var(--bg-parchment);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  z-index: 10;
+  padding-top: max(0px, env(safe-area-inset-top));
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-title svg {
+  width: 20px;
+  height: 20px;
+  fill: var(--gold);
+}
+
+.header-title h1 {
+  font-size: 15px;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+.header-badge {
+  font-size: 11px;
+  background: var(--gold);
+  color: var(--border-dark);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+/* 视窗内容滚动面板 */
+.app-viewport {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  padding-bottom: 90px;
+  -webkit-overflow-scrolling: touch;
+}
+.app-viewport.has-chat-bar {
+  padding-bottom: 140px; /* 给输入栏留出空间 */
+}
+
+.view-panel {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.view-panel.active {
+  display: flex;
+}
+
+/* 微信式底部输入栏 */
+.chat-input-bar {
+  position: absolute;
+  bottom: 68px;
+  left: 0;
+  width: 100%;
+  background: var(--bg-parchment);
+  border-top: 1px solid var(--border);
+  padding: 10px 16px;
+  display: none; /* 默认隐藏，JS控制 */
+  gap: 10px;
+  align-items: flex-end;
+  z-index: 20;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+}
+.chat-input-bar.active {
+  display: flex;
+}
+.chat-input-bar textarea {
+  flex: 1;
+  min-height: 40px;
+  max-height: 100px;
+  border-radius: 20px;
+  padding: 10px 16px;
+  resize: none;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text-primary);
+  outline: none;
+  line-height: 1.4;
+}
+.chat-send-btn {
+  background: var(--gold);
+  color: #fff;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.1s;
+}
+.chat-send-btn:active {
+  transform: scale(0.95);
+}
+.chat-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.chat-send-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: #fff;
+  margin-left: 2px;
+}
+
+/* ============================================================
+iCity 拟真手账卡片架构
+============================================================ */
+.icity-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(44,37,25,0.06);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.icity-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-dim);
+  border-bottom: 1px dashed var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.icity-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.icity-meta-item svg {
+  width: 12px;
+  height: 12px;
+  fill: var(--text-dim);
+}
+
+.icity-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.icity-avatar-box {
+  width: 44px;
+  height: 44px;
+  border: 1.5px solid var(--border-dark);
+  padding: 2px;
+  background: #fff;
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.08);
+}
+
+.icity-avatar {
+  width: 100%;
+  height: 100%;
+  background: #e2d7bd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icity-avatar svg {
+  width: 22px;
+  height: 22px;
+  fill: var(--text-secondary);
+}
+
+.icity-user-info h3 {
+  font-size: 13.5px;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.icity-user-info p {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.icity-content {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  text-align: justify;
+  margin-bottom: 14px;
+  white-space: pre-line;
+}
+
+/* 独家巧思：吐真剂激活遮罩 */
+.veritaserum-box {
+  display: none;
+  background: rgba(116, 0, 1, 0.04);
+  border-left: 3px solid var(--gryffindor);
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  color: var(--gryffindor);
+  font-style: italic;
+  line-height: 1.5;
+  animation: slideDown 0.3s ease;
+}
+
+.icity-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(196,180,145,0.4);
+  padding-top: 10px;
+}
+
+.icity-stats {
+  display: flex;
+  gap: 14px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.icity-stat-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.icity-stat-btn svg {
+  width: 13px;
+  height: 13px;
+  fill: var(--text-dim);
+}
+
+/* 巧思触发：滴管 */
+.potion-trigger {
+  background: linear-gradient(135deg, #2c1e30, var(--slytherin));
+  border: none;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.potion-trigger svg {
+  width: 12px;
+  height: 12px;
+  fill: #fff;
+}
+
+/* 选项组（卡片气泡化） */
+.choices-stack {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.choice-bubble {
+  background: rgba(189,146,74,0.08);
+  border: 1px solid var(--border);
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  line-height: 1.4;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.choice-bubble:active {
+  background: var(--gold);
+  color: #fff;
+  border-color: var(--gold);
+}
+
+/* 消息操作栏 */
+.msg-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  justify-content: flex-end;
+  border-top: 1px dashed var(--border);
+  padding-top: 8px;
+}
+.msg-action-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  transition: color 0.2s;
+}
+.msg-action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+.msg-action-btn:active { color: var(--gold); }
+
+/* ============================================================
+高级 API 文件夹分区样式
+============================================================ */
+.api-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+}
+
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 10px;
+  font-size: 13px;
+  border-radius: 6px;
+  outline: none;
+  font-family: inherit;
+}
+
+/* 手机端独创：Prompt横轴滑块微型文件夹 */
+.folder-container {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.folder-tabs-row {
+  display: flex;
+  background: #e4d7bd;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.folder-tab-btn {
+  flex: 1;
+  min-width: 90px;
+  padding: 10px 6px;
+  background: transparent;
+  border: none;
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-right: 1px solid var(--border);
+}
+
+.folder-tab-btn.active {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-weight: bold;
+}
+
+.folder-body-area {
+  background: var(--bg-card);
+  padding: 12px;
+}
+
+/* 身份库与存读档卡片 */
+.list-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.list-card-title {
+  font-size: 13.5px;
+  font-weight: bold;
+  color: var(--text-primary);
+}
+
+.list-card-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.hp-btn {
+  background: var(--border-dark);
+  color: var(--bg-parchment);
+  border: none;
+  padding: 6px 12px;
+  font-size: 11px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.hp-btn:active { background: var(--gold); }
+
+/* 自定义主题弹窗 */
+.modal-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(22, 19, 14, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+.modal-box {
+  background: var(--bg-card);
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  padding: 20px;
+  width: 100%;
+  max-width: 320px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  text-align: center;
+  animation: fadeIn 0.2s ease-out;
+}
+.modal-title {
+  color: var(--text-primary);
+  font-size: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: bold;
+}
+.modal-title svg { width: 20px; height: 20px; fill: var(--gold); }
+.modal-content {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+.modal-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 8px;
+  font-size: 13px;
+  border-radius: 6px;
+  outline: none;
+  margin-bottom: 16px;
+  font-family: inherit;
+}
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.modal-btn {
+  background: var(--border-dark);
+  color: var(--bg-parchment);
+  border: none;
+  padding: 8px 16px;
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  flex: 1;
+}
+.modal-btn.cancel {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+/* 角色标签 */
+.char-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+.char-tag {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+.char-tag.selected {
+  background: var(--gold);
+  color: #fff;
+  border-color: var(--gold);
+}
+
+/* 全屏防摄神取念拦截层 */
+.legilimens-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(26,54,43,0.4);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+
+.legilimens-box {
+  background: var(--bg-card);
+  border: 3px double var(--gryffindor);
+  border-radius: 12px;
+  padding: 24px;
+  width: 100%;
+  text-align: center;
+}
+
+/* 底部魔杖级导航栏 */
+.app-navbar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 68px;
+  background: #231d14;
+  border-top: 2px solid var(--gold);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 10;
+  padding-bottom: max(0px, env(safe-area-inset-bottom));
+}
+
+.nav-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 25%;
+  height: 100%;
+  gap: 4px;
+}
+
+.nav-tab svg { width: 18px; height: 18px; fill: currentcolor; }
+.nav-tab span { font-size: 10px; }
+.nav-tab.active { color: var(--gold-light); }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* 金色旋转圆圈过渡动画 */
+.golden-spinner {
+  width: 60px;
+  height: 60px;
+  animation: spin 2s linear infinite;
+}
+.golden-spinner .path {
+  stroke: var(--gold);
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+@keyframes dash {
+  0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+  50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+  100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- 过渡动画遮罩 -->
+    <div class="modal-overlay" id="transitionOverlay" style="display:none; background: var(--bg-deep); z-index: 400; flex-direction: column; justify-content: center; align-items: center;">
+        <svg class="golden-spinner" viewBox="0 0 50 50">
+            <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>
+        </svg>
+        <p style="color: var(--gold); margin-top: 20px; font-family: 'Cinzel', serif; letter-spacing: 3px; font-size: 14px;">时空折跃中...</p>
+    </div>
+
+    <!-- 首页时代选择遮罩 -->
+    <div class="modal-overlay" id="homeScreen" style="display:flex; background: var(--bg-deep); z-index: 300; flex-direction: column; padding: 24px;">
+        <div style="text-align:center; margin-bottom: 40px;">
+            <svg viewBox="0 0 24 24" style="width:56px;height:56px;fill:var(--gold);margin-bottom:16px;"><path d="M12 2L2 22h20L12 2zm0 3.8l6.2 14.2H5.8L12 5.8z"/></svg>
+            <h1 style="color:var(--gold); font-size:24px; font-family:'Cinzel', serif; letter-spacing: 2px;">宿命回响</h1>
+            <p style="color:var(--text-dim); font-size:12px; margin-top:8px; letter-spacing: 1px;">请选择你要降临的时代</p>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:16px;">
+            <button class="hp-btn" style="padding:16px; font-size:14px; border: 1px solid var(--gold); background: rgba(189,146,74,0.1); color: var(--gold-light);" onclick="selectEraHome('riddle')">
+                <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:currentColor;vertical-align:middle;margin-right:8px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                里德尔时代 (1943)
+            </button>
+            <button class="hp-btn" style="padding:16px; font-size:14px; border: 1px solid var(--gold); background: rgba(189,146,74,0.1); color: var(--gold-light);" onclick="selectEraHome('marauders')">
+                <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:currentColor;vertical-align:middle;margin-right:8px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                亲时代 (1976)
+            </button>
+        </div>
+        <button style="margin-top: 32px; background: none; border: none; color: var(--text-dim); text-decoration: underline; font-size: 12px; cursor: pointer;" onclick="document.getElementById('homeScreen').style.display='none'; switchTab('persona');">暂不进入，先去配置档案与API</button>
+    </div>
+
+    <!-- 通用自定义弹窗 -->
+    <div class="modal-overlay" id="customModal">
+        <div class="modal-box">
+            <div class="modal-title" id="modalTitle">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                <span id="modalTitleText">提示</span>
+            </div>
+            <div class="modal-content" id="modalContent"></div>
+            <input type="text" class="modal-input" id="modalInput" style="display:none;">
+            <div class="modal-actions">
+                <button class="modal-btn cancel" id="modalCancelBtn" style="display:none;" onclick="closeModal(false)">取消</button>
+                <button class="modal-btn" id="modalConfirmBtn" onclick="closeModal(true)">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="legilimens-overlay" id="legilimensOverlay">
+        <div class="legilimens-box">
+            <h3 style="color:var(--gryffindor); margin-bottom:8px;">
+                <svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:currentColor;vertical-align:middle;margin-right:4px;"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                警告：遭遇 [摄神取念] 精神入侵
+            </h3>
+            <p style="font-size:12px; color:var(--text-secondary); line-height:1.5; margin-bottom:12px;">
+                对方正在强行读取你的表层意识。请写下你此刻脑海中闪过的真实想法或伪装画面：
+            </p>
+            <textarea id="legilimens-thought" class="form-textarea" rows="3" placeholder="例如：其实我早就知道魂器的秘密... / 或想象一片空白的雪地..." style="margin-bottom: 12px; background: rgba(255,255,255,0.8);"></textarea>
+            <div style="display:flex; gap:10px;">
+                <button class="hp-btn" style="flex:1; background:var(--gryffindor); padding:8px;" onclick="submitLegilimens(false)">任其读取</button>
+                <button class="hp-btn" style="flex:1; background:var(--slytherin); padding:8px;" onclick="submitLegilimens(true)">大脑封闭术伪装</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="app-header">
+        <div class="header-title">
+            <svg viewBox="0 0 24 24"><path d="M19 11.5h-5V3l-9 11h5v8l9-11z"/></svg>
+            <h1 id="headerEraTitle">里德尔时代 (1943)</h1>
+        </div>
+        <div style="display:flex; gap:6px; align-items:center;">
+            <div class="header-badge" id="headerLocation">
+                <svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:currentColor;vertical-align:middle;margin-right:2px;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg><span id="headerLocText">斯拉格霍恩地下长桌</span>
+            </div>
+            <button class="hp-btn" style="padding:2px 6px; font-size:10px; background:var(--gold); color:#fff;" onclick="manualSave()">存档</button>
+            <button class="hp-btn" style="padding:2px 6px; font-size:10px;" onclick="manualLoad()">读档</button>
+        </div>
+    </header>
+
+    <div class="app-viewport has-chat-bar">
+        
+        <div class="view-panel active" id="panel-timeline">
+            <button class="hp-btn" id="btn-show-home" style="width:100%; padding:10px; margin-bottom:16px; background: var(--gold); color: #fff;" onclick="document.getElementById('homeScreen').style.display='flex'">唤出时空折跃门 (选择时代)</button>
+            <div id="timeline-content" style="display:flex; flex-direction:column; gap:16px; margin-bottom:16px;">
+                <!-- 剧情卡片将在这里动态生成 -->
+            </div>
+        </div>
+
+        <div class="view-panel" id="panel-persona">
+            <div class="api-card" style="margin-bottom: 16px;">
+                <h3 style="font-size:13px; margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:4px;">
+                    <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;vertical-align:middle;margin-right:4px;"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>故事剧本与目标设定
+                </h3>
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <label style="margin-bottom: 0;">导入/填写剧本大纲</label>
+                        <input type="file" id="script-file" accept=".txt,.doc,.docx,.json" style="display:none;" onchange="handleFileUpload(event)">
+                        <button class="hp-btn" style="padding: 2px 8px; font-size: 10px;" onclick="document.getElementById('script-file').click()">导入文件</button>
+                    </div>
+                    <textarea id="script-outline" class="form-textarea" rows="2" placeholder="例如：密室开启前夕，霍格沃茨暗流涌动...">霍格沃茨1943年，密室疑云。</textarea>
+                    <button class="hp-btn" style="margin-top:4px; padding:4px; font-size:11px;" onclick="extractCharacters()">智能识别角色</button>
+                </div>
+                <div class="form-group">
+                    <label>选择核心攻略角色 (点击勾选)</label>
+                    <div class="char-tags-container" id="target-character-tags">
+                        <div class="char-tag selected" onclick="toggleTag(this)">汤姆·里德尔</div>
+                        <div class="char-tag" onclick="toggleTag(this)">阿布拉克萨斯·马尔福</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>其他参与角色 (可手动补充，逗号分隔)</label>
+                    <input type="text" id="other-characters" class="form-input" value="阿不思·邓布利多, 斯拉格霍恩" placeholder="逗号分隔">
+                </div>
+            </div>
+
+            <div class="api-card">
+                <h3 style="font-size:13px; margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:4px;">
+                    <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;vertical-align:middle;margin-right:4px;"><path d="M12 2L4.5 20.29l.71.71L9 18v4h6v-4l3.79 3 1 .71.71-.71L12 2z"/></svg>穿越身份契约登记
+                </h3>
+                <div class="form-group">
+                    <label>主角姓名</label>
+                    <input type="text" id="p-name" class="form-input" value="艾芙琳·沙菲克">
+                </div>
+                <div class="form-group">
+                    <label>血统门第 (可自由填写)</label>
+                    <input type="text" id="p-blood" class="form-input" value="神圣二十八族纯血遗孤" placeholder="例如：纯血、混血、麻瓜出身...">
+                </div>
+                <div class="form-group">
+                    <label>宿命宿主时代</label>
+                    <select id="p-era" class="form-select" onchange="syncEraHeader()">
+                        <option value="riddle">伏地魔崛起·里德尔时代 (1938-1970)</option>
+                        <option value="marauders">掠夺者狂欢·亲时代 (1960-1981)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>核心私设背景 (AI发包时强制读取)</label>
+                    <textarea class="form-textarea" rows="3">表面依附纯血阶层，实则是邓布利多安插在斯莱特林的密探，旨在寻找魂器和密室蛛丝马迹。</textarea>
+                </div>
+                <button class="hp-btn" style="width:100%; padding:10px;" onclick="customAlert('剧本及主角档案已同步写入Local环境，AI将在下次演绎时强制读取。')">保存设定</button>
+            </div>
+        </div>
+
+        <div class="view-panel" id="panel-api">
+            <div class="api-card">
+                <h3 style="font-size:13px; margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:4px;">
+                    <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;vertical-align:middle;margin-right:4px;"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c1.12.22.37.29.59.22l2.39-.96c.5.38 1.03.70 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>代理端点与核心文件夹
+                </h3>
+                <div class="form-group">
+                    <label>API URL Base</label>
+                    <input type="text" id="api-url" class="form-input" value="https://api.openai-proxy.com/v1">
+                </div>
+                <div class="form-group">
+                    <label>API KEY</label>
+                    <input type="password" id="api-key" class="form-input" value="sk-xxxxxxxxxxxxxxxxxxxxxxxx">
+                </div>
+
+                <div class="form-group">
+                    <label>模型选择 (Model)</label>
+                    <div style="display: flex; gap: 8px;">
+                        <select id="api-model" class="form-select" style="flex: 1;">
+                            <option value="gpt-4o">gpt-4o</option>
+                            <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                        </select>
+                        <button class="hp-btn" onclick="fetchModels(event)">拉取模型</button>
+                        <button class="hp-btn" onclick="customAlert('模型配置已保存！')">保存</button>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top:10px;">
+                    <label>Prompt 控制文件夹分区</label>
+                    <div class="folder-container">
+                        <div class="folder-tabs-row">
+                            <button class="folder-tab-btn active" id="fbtn-global" onclick="selectFolder('global')"><span id="lbl-global">全局铁律</span></button>
+                            <button class="folder-tab-btn" id="fbtn-riddle" onclick="selectFolder('riddle')"><span id="lbl-riddle">里德尔专区</span></button>
+                            <button class="folder-tab-btn" id="fbtn-marauders" onclick="selectFolder('marauders')"><span id="lbl-marauders">亲时代专区</span></button>
+                        </div>
+                        <div class="folder-body-area">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:4px;">
+                                <select id="file-selector" class="form-select" style="padding:2px 4px; font-size:11px; flex:1;" onchange="selectFile()"></select>
+                                <button class="hp-btn" style="padding:2px 6px; font-size:10px;" onclick="addFile()">+ 新建</button>
+                                <button class="hp-btn" style="padding:2px 6px; font-size:10px; background: var(--gryffindor);" onclick="deleteFile()">删除</button>
+                            </div>
+                            <textarea id="prompt-box" class="form-textarea" rows="3" style="font-size:11px; font-family:monospace;" oninput="saveCurrentFile()"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="view-panel" id="panel-save">
+            <h3 style="font-size:13px; border-bottom:1px solid var(--border); padding-bottom:4px; margin-bottom:10px;">
+                <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;vertical-align:middle;margin-right:4px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/></svg>冥想盆银丝索引
+            </h3>
+            <div class="list-card">
+                <div class="list-card-title">记忆切片 #01 - 密室前夕</div>
+                <div class="list-card-sub">进度：里德尔时代第一卷 · 斯莱特林休息室</div>
+                <div style="margin-top:4px; display:flex; gap:6px;">
+                    <button class="hp-btn" onclick="customAlert('已从冥想盆中唤醒并提取此段世界记忆，回溯成功。')">提取银丝(读档)</button>
+                    <button class="hp-btn" style="background:var(--gold)" onclick="customAlert('当前数据及文件夹Prompt配置已固化封存。')">剥离记忆(存档)</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="chat-input-bar active" id="chatInputBar">
+        <textarea id="user-action-input" rows="1" placeholder="点击发送，对方将首先开始剧情..." oninput="this.style.height = ''; this.style.height = Math.min(this.scrollHeight, 100) + 'px'"></textarea>
+        <button class="chat-send-btn" onclick="submitUserAction()">
+            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+    </div>
+
+    <nav class="app-navbar">
+        <button class="nav-tab active" onclick="switchTab('timeline')">
+            <svg viewBox="0 0 24 24"><path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/></svg>
+            <span>时间线</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('persona')">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+            <span>人设档案</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('api')">
+            <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c1.12.22.37.29.59.22l2.39-.96c.5.38 1.03.70 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+            <span>接口配置</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('save')">
+            <svg viewBox="0 0 24 24"><path d="M6 2v6h.01L6 8.01 10 12l-4 4 .01.01H6V22h12v-5.99h-.01L18 16l-4-4 4-3.99-.01-.01H18V2h-12zm10 14.5V20H8v-3.5l4-4 4 4zM12 11.5l-4-4V4h8v3.5l-4 4z"/></svg>
+            <span>冥想盆</span>
+        </button>
+    </nav>
+</div>
+
+<script>
+window.addEventListener('error', function(e) {
+    if (e.message === 'Script error.') {
+        e.preventDefault();
+    }
+});
+
+// 自定义弹窗逻辑
+let modalCallback = null;
+function showModal({ title, content, showInput = false, showCancel = false, defaultInput = '', callback }) {
+  document.getElementById('modalTitleText').innerText = title || '提示';
+  document.getElementById('modalContent').innerHTML = content || '';
+  
+  const inputEl = document.getElementById('modalInput');
+  if (showInput) {
+    inputEl.style.display = 'block';
+    inputEl.value = defaultInput;
+  } else {
+    inputEl.style.display = 'none';
+  }
+  
+  document.getElementById('modalCancelBtn').style.display = showCancel ? 'block' : 'none';
+  
+  modalCallback = callback;
+  document.getElementById('customModal').style.display = 'flex';
+}
+
+function closeModal(isConfirm) {
+  document.getElementById('customModal').style.display = 'none';
+  if (modalCallback) {
+    const inputVal = document.getElementById('modalInput').value;
+    modalCallback(isConfirm, inputVal);
+  }
+}
+
+function customAlert(msg) {
+  showModal({ content: msg });
+}
+function customConfirm(msg, onConfirm) {
+  showModal({ content: msg, showCancel: true, callback: (res) => { if(res) onConfirm(); } });
+}
+function customPrompt(msg, defaultVal, onConfirm) {
+  showModal({ content: msg, showInput: true, showCancel: true, defaultInput: defaultVal, callback: (res, val) => { if(res) onConfirm(val); } });
+}
+
+const promptFiles = {
+  global: [{ id: 'g1', name: '核心系统限制', content: `[全局核心系统限制]
+1. 文风100%贴合罗琳JK原著风格。
+2. 每一个选项都严格产生连带蝴蝶效应。
+
+【AI回复核心要求】
+依据人设、剧情，prompt，描述角色的动作，语言，神态，环境，每次输出不少于100字。
+
+【动作合理化规则】
+在描写任何肢体动作前，必须先确认以下前提：
+- 当前双方的位置、姿态、距离（站/坐/躺/蹲，相距多远）
+- 动作是否符合物理逻辑与当前姿态
+- 同一动作方式不得在不同场景中无脑复用，应根据当前双方的实际状态选择合理的肢体互动方式
+- 禁止在未描写中间过渡动作的前提下，让人物凭空位移或姿态突变
+
+【细节描写规则】
+肢体接触、亲密互动等场景，必须具体描写以下维度，不得以笼统词汇代替：
+- 嘴唇的质感、温度、动作方式（轻碰、啃咬、吸吮、相扣……）
+- 头部角度的变化（仰、侧、倾斜角度的微调）
+- 呼吸的节律变化（急促、屏住、从鼻腔逸出的气息……）
+- 舌的具体动作、手和身体在此期间的位置与变化
+- 氛围感：湿润感、温热感、暧昧张力，需用具体的感官语言呈现，而非用标签一笔带过
+
+【语言去固化规则】
+禁止反复使用固定句式。如"睡吧，我就在这里"、"再说一遍"、"你知道我的意思"、"我说到做到"等。人物的语言应随情绪、场景、关系进展而演变，不得产生"语言循环"。
+
+【活人感规则】
+- 角色拥有明确性格，但人是复杂的，可以矛盾、可以改变。
+- 不得将人设直接转化为单一固定的行为模式，应理解其背后的成因、情绪动机。
+- 角色有自己的内心活动、下意识反应、身体感受，应适时呈现。
+- 绝对不能替代、预设、预写user的行为、语言、动作，只能做自己。
+
+【剧情推动规则】
+- 角色应根据人设、当前剧情走向，主动产生自己的意图、计划，并通过合理的方式推动剧情。
+- user迈出一步，角色也有自己"下一步想做什么"的冲动与行动。
+
+【时间与环境感知规则】
+- 当出现时间性词汇，必须理解为这段时间内双方均有正常的生活与行为发生。
+- 地点发生变化时，必须同步更新环境感知细节（光线、温度、气味、声音等）。
+- 人物的衣着、情绪、体力等状态，必须经过合理的过渡或说明才能改变，不得莫名跳变。
+- 【出场规则】：只描写当前场景中实际在场且与剧情互动的角色，不要把设定里的其他角色强行拉出来描述。
+- 【位置更新指令】：如果当前剧情导致地点发生变化，请在回复的最末尾单独起一行，严格按此格式输出：[Location: 新地点名称]。如果没有变化则千万不要输出此行。
+- 【读心触发指令】：如果你对user使用了摄神取念(Legilimency)或任何形式的读心魔法，请务必在回复的最末尾单独起一行，严格按此格式输出：[Legilimens]。` }],
+  riddle: [{ id: 'r1', name: '里德尔时代细节', content: "[里德尔时代细节魔改提示]\n1. 汤姆在外极具伪装性，优雅、温和。\n2. 独处或遭遇危机时展现强烈的掌控欲。" }],
+  marauders: [{ id: 'm1', name: '亲时代细节', content: "[亲时代细节魔改提示]\n1. 契合阿兹卡班及傲罗体制。\n2. 强化阵营割裂对抗与爱恨纠葛。" }]
+};
+
+let currentFolder = 'global';
+let currentFileId = 'g1';
+
+function renderFileList() {
+  const selector = document.getElementById('file-selector');
+  selector.innerHTML = '';
+  const files = promptFiles[currentFolder];
+  if (files.length === 0) {
+    selector.innerHTML = '<option value="">(无文件)</option>';
+    document.getElementById('prompt-box').value = '';
+    document.getElementById('prompt-box').disabled = true;
+    return;
+  }
+  document.getElementById('prompt-box').disabled = false;
+  files.forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = f.id;
+    opt.innerText = f.name;
+    selector.appendChild(opt);
+  });
+  
+  if (!files.find(f => f.id === currentFileId)) {
+    currentFileId = files[0].id;
+  }
+  selector.value = currentFileId;
+  document.getElementById('prompt-box').value = files.find(f => f.id === currentFileId).content;
+}
+
+function switchTab(panelId) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+  
+  try {
+    const tabBtn = document.querySelector(`.nav-tab[onclick*="switchTab('${panelId}')"]`);
+    if(tabBtn) tabBtn.classList.add('active');
+  } catch(e) {}
+  
+  const panel = document.getElementById(`panel-${panelId}`);
+  if(panel) panel.classList.add('active');
+  
+  const chatBar = document.getElementById('chatInputBar');
+  const viewport = document.querySelector('.app-viewport');
+  if (panelId === 'timeline') {
+    chatBar.classList.add('active');
+    viewport.classList.add('has-chat-bar');
+  } else {
+    chatBar.classList.remove('active');
+    viewport.classList.remove('has-chat-bar');
+  }
+
+  if (panelId === 'api') {
+    renderFileList();
+  }
+}
+
+function toggleVeritaserum(id) {
+  const box = document.getElementById(`v-box-${id}`);
+  box.style.display = (box.style.display === 'block') ? 'none' : 'block';
+}
+
+let actionCount = 0;
+function selectEraHome(era) {
+  document.getElementById('homeScreen').style.display = 'none';
+  
+  const transitionOverlay = document.getElementById('transitionOverlay');
+  transitionOverlay.style.display = 'flex';
+  
+  setTimeout(() => {
+      transitionOverlay.style.display = 'none';
+      document.getElementById('p-era').value = era;
+      syncEraHeader();
+      document.getElementById('btn-show-home').style.display = 'none';
+      switchTab('timeline');
+  }, 1500);
+}
+
+function getMsgActionsHTML() {
+  return `
+    <div class="msg-actions">
+        <button class="msg-action-btn" onclick="copyMsg(this)"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>复制</button>
+        <button class="msg-action-btn" onclick="editMsg(this)"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>编辑</button>
+        <button class="msg-action-btn" onclick="deleteMsg(this)"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>删除</button>
+        <button class="msg-action-btn" onclick="resetMsg(this)"><svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>重置</button>
+    </div>
+  `;
+}
+
+function copyMsg(btn) {
+  const content = btn.closest('.icity-card').querySelector('.icity-content').innerText;
+  if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(content).then(() => customAlert("已复制内容到剪贴板")).catch(() => customAlert("复制失败"));
+  } else {
+      try {
+          const textArea = document.createElement("textarea");
+          textArea.value = content;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          customAlert("已复制内容到剪贴板");
+      } catch (err) {
+          customAlert("复制失败，请手动复制");
+      }
+  }
+}
+
+function deleteMsg(btn) {
+  customConfirm("确认删除此条消息记录吗？", () => {
+    btn.closest('.icity-card').remove();
+    saveToLocal();
+  });
+}
+
+function editMsg(btn) {
+  const contentEl = btn.closest('.icity-card').querySelector('.icity-content');
+  customPrompt("编辑消息内容：", contentEl.innerText, (newVal) => {
+    if(newVal) {
+        contentEl.innerHTML = newVal.replace(/\n/g, '<br>');
+        saveToLocal();
+    }
+  });
+}
+
+function resetMsg(btn) {
+  customConfirm("确认重新生成/回复此消息吗？", async () => {
+    const card = btn.closest('.icity-card');
+    const contentEl = card.querySelector('.icity-content');
+    const oldContent = contentEl.innerHTML;
+    contentEl.innerHTML = "<span style='color:var(--text-dim)'>重新生成中...</span>";
+    
+    // 临时隐藏当前卡片，防止被 generateAIResponse 抓取到上下文中
+    card.style.display = 'none';
+    
+    const newText = await generateAIResponse();
+    card.style.display = 'flex';
+    
+    if (newText) {
+        contentEl.innerHTML = newText.replace(/\n/g, '<br>');
+        saveToLocal();
+    } else {
+        contentEl.innerHTML = oldContent;
+    }
+  });
+}
+
+async function generateAIResponse() {
+    let apiUrl = document.getElementById('api-url').value.trim();
+    const apiKey = document.getElementById('api-key').value.trim();
+    const model = document.getElementById('api-model').value.trim();
+    
+    if (!apiKey || apiKey.includes('xxx')) {
+        customAlert("请先在[接口配置]中填写有效的 API KEY");
+        return null;
+    }
+
+    // 自动修正 URL 格式，防止重复拼接 /chat/completions
+    if (apiUrl.endsWith('/chat/completions')) apiUrl = apiUrl.replace('/chat/completions', '');
+    if (apiUrl.endsWith('/')) apiUrl = apiUrl.slice(0, -1);
+
+    // 构建系统提示词
+    let systemPrompt = "";
+    Object.values(promptFiles).forEach(folder => {
+        folder.forEach(file => {
+            if (file.content.trim()) systemPrompt += file.content + "\n\n";
+        });
+    });
+    
+    const pName = document.getElementById('p-name').value;
+    const pBlood = document.getElementById('p-blood').value;
+    const pBg = document.querySelector('#panel-persona .form-textarea:last-of-type').value;
+    systemPrompt += `\n[主角设定]\n姓名：${pName}\n血统：${pBlood}\n背景：${pBg}\n`;
+    systemPrompt += `\n【重要指令】在你的回复末尾，请务必提供4到5个符合当前剧情发展的行动选项供玩家选择。每个选项单独一行，以 A. B. C. D. E. 开头。`;
+
+    const messages = [{ role: "system", content: systemPrompt }];
+
+    // 收集历史记录
+    const timelineContent = document.getElementById('timeline-content');
+    const cards = timelineContent.querySelectorAll('.icity-card');
+    cards.forEach(card => {
+        if (card.style.display === 'none' || card.id === 'typing-indicator') return;
+        const userInfoEl = card.querySelector('.icity-user-info p');
+        if (!userInfoEl) return;
+        const isUser = userInfoEl.innerText.includes('你的行动');
+        const content = card.querySelector('.icity-content').innerText;
+        messages.push({ role: isUser ? "user" : "assistant", content: content });
+    });
+
+    try {
+        const response = await fetch(`${apiUrl}/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: messages
+            })
+        });
+        const data = await response.json();
+        if (data.choices && data.choices.length > 0) {
+            return data.choices[0].message.content;
+        } else {
+            throw new Error(data.error ? data.error.message : "未知错误");
+        }
+    } catch (e) {
+        customAlert("API 请求失败：" + e.message);
+        return null;
+    }
+}
+
+async function triggerAI() {
+    const timelineContent = document.getElementById('timeline-content');
+    const sendBtn = document.querySelector('.chat-send-btn');
+    const inputEl = document.getElementById('user-action-input');
+    
+    // 显示推演中指示器卡片
+    const typingCard = document.createElement('div');
+    typingCard.id = 'typing-indicator';
+    typingCard.className = 'icity-card';
+    typingCard.innerHTML = `
+      <div class="icity-user">
+          <div class="icity-avatar-box">
+              <div class="icity-avatar">
+                  <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+              </div>
+          </div>
+          <div class="icity-user-info">
+              <h3>世界意志</h3>
+              <p>剧情推演中...</p>
+          </div>
+      </div>
+      <div class="icity-content" style="color: var(--text-dim); font-style: italic; display: flex; align-items: center; gap: 6px;">
+          <svg class="golden-spinner" viewBox="0 0 50 50" style="width:16px;height:16px;animation-duration:1s;"><circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="6"></circle></svg>
+          正在感知时空波动，请稍候...
+      </div>
+    `;
+    timelineContent.appendChild(typingCard);
+    document.querySelector('.app-viewport').scrollTop = document.querySelector('.app-viewport').scrollHeight;
+
+    if(sendBtn) sendBtn.disabled = true;
+    const oldPlaceholder = inputEl.placeholder;
+    inputEl.placeholder = "AI正在思考与演绎中...";
+
+    const aiText = await generateAIResponse();
+    
+    // 移除指示器
+    if (typingCard.parentNode) {
+        typingCard.parentNode.removeChild(typingCard);
+    }
+    if(sendBtn) sendBtn.disabled = false;
+    inputEl.placeholder = oldPlaceholder;
+
+    if (aiText) {
+        executeAIAction(aiText);
+    }
+}
+
+async function submitUserAction(predefinedAction = null) {
+  const inputEl = document.getElementById('user-action-input');
+  const actionText = (typeof predefinedAction === 'string' ? predefinedAction : null) || inputEl.value;
+  
+  if (!actionText.trim()) {
+      // 无内容直接推进剧情
+      await triggerAI();
+      return;
+  }
+  
+  // 有内容时，发送上屏后自动触发AI回复
+  customConfirm("确认发送此行动走向吗？\n\n" + actionText, async () => {
+    executeUserAction(actionText, inputEl, predefinedAction);
+    if (!predefinedAction) {
+        inputEl.value = ''; 
+        inputEl.style.height = '40px'; 
+    }
+    await triggerAI();
+  });
+}
+
+function executeAIAction(text) {
+  const timelineContent = document.getElementById('timeline-content');
+  const aiCard = document.createElement('div');
+  aiCard.className = 'icity-card';
+  const selectedTags = Array.from(document.querySelectorAll('#target-character-tags .selected')).map(el => el.innerText).join(', ');
+  const targetChar = selectedTags || '未知角色';
+  
+  const lines = text.split('\n');
+  let mainContent = [];
+  let options = [];
+  const optionRegex = /^[A-E][.、]/i;
+  const locRegex = /\[Location:\s*(.+?)\]/i;
+  const legilimensRegex = /\[Legilimens\]/i;
+  let newLoc = null;
+  let triggerMindRead = false;
+  
+  lines.forEach(line => {
+      const locMatch = line.match(locRegex);
+      if (locMatch) {
+          newLoc = locMatch[1];
+      } else if (legilimensRegex.test(line.trim())) {
+          triggerMindRead = true;
+      } else if (optionRegex.test(line.trim())) {
+          options.push(line.trim());
+      } else {
+          mainContent.push(line);
+      }
+  });
+
+  if (newLoc && document.getElementById('headerLocText')) {
+      document.getElementById('headerLocText').innerText = newLoc;
+  }
+  
+  let optionsHtml = '';
+  if (options.length > 0) {
+      optionsHtml = '<div class="choices-stack">';
+      options.forEach(opt => {
+          const safeOpt = opt.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+          optionsHtml += `
+            <div class="choice-bubble" onclick="submitUserAction('${safeOpt}')">
+                <span>${opt}</span>
+            </div>
+          `;
+      });
+      optionsHtml += '</div>';
+  }
+  
+  aiCard.innerHTML = `
+      <div class="icity-user">
+          <div class="icity-avatar-box">
+              <div class="icity-avatar">
+                  <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+              </div>
+          </div>
+          <div class="icity-user-info">
+              <h3>${targetChar}</h3>
+              <p>剧情演绎中...</p>
+          </div>
+      </div>
+      <div class="icity-content">${mainContent.join('<br>')}</div>
+      ${optionsHtml}
+      ${getMsgActionsHTML()}
+  `;
+  timelineContent.appendChild(aiCard);
+  document.querySelector('.app-viewport').scrollTop = document.querySelector('.app-viewport').scrollHeight;
+  saveToLocal();
+  
+  if (triggerMindRead) {
+      setTimeout(() => {
+          document.getElementById('legilimens-thought').value = '';
+          document.getElementById('legilimensOverlay').style.display = 'flex';
+      }, 800);
+  }
+}
+
+function executeUserAction(actionText, inputEl, predefinedAction) {
+  actionCount++;
+  const timelineContent = document.getElementById('timeline-content');
+  const pName = document.getElementById('p-name').value || '你';
+  
+  const userCard = document.createElement('div');
+  userCard.className = 'icity-card';
+  userCard.innerHTML = `
+      <div class="icity-user">
+          <div class="icity-avatar-box">
+              <div class="icity-avatar" style="background: var(--border);">
+                  <svg viewBox="0 0 24 24" style="fill: #fff;"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+              </div>
+          </div>
+          <div class="icity-user-info">
+              <h3>${pName}</h3>
+              <p>你的行动</p>
+          </div>
+      </div>
+    <div class="icity-content" style="color: var(--text-secondary); font-style: italic;">
+        ${actionText.replace(/\n/g, '<br>')}
+    </div>
+    ${getMsgActionsHTML()}
+  `;
+  timelineContent.appendChild(userCard);
+  
+  // 不再自动清理输入框，保留用户编辑的数据
+  // if (!predefinedAction) inputEl.value = '';
+  
+  document.querySelector('.app-viewport').scrollTop = document.querySelector('.app-viewport').scrollHeight;
+  saveToLocal();
+}
+
+function toggleTag(el) {
+  el.classList.toggle('selected');
+  saveToLocal();
+}
+
+function extractCharacters() {
+  const text = document.getElementById('script-outline').value;
+  // 简单模拟识别
+  const mockChars = ["汤姆·里德尔", "阿布拉克萨斯·马尔福", "西弗勒斯·斯内普", "小天狼星·布莱克"];
+  const found = mockChars.filter(c => text.includes(c.split('·')[0]));
+  
+  const container = document.getElementById('target-character-tags');
+  if (found.length > 0) {
+    container.innerHTML = '';
+    found.forEach((c, idx) => {
+      const div = document.createElement('div');
+      div.className = 'char-tag' + (idx === 0 ? ' selected' : '');
+      div.innerText = c;
+      div.onclick = function() { toggleTag(this); };
+      container.appendChild(div);
+    });
+    customAlert("已从剧本中识别出潜在角色，请点击勾选作为攻略目标。");
+  } else {
+    customAlert("未在剧本中识别出预设核心角色，请手动补充。");
+  }
+}
+
+function triggerLegilimens() {
+  document.getElementById('legilimens-thought').value = '';
+  document.getElementById('legilimensOverlay').style.display = 'flex';
+}
+
+function submitLegilimens(useOcclumency) {
+  const thought = document.getElementById('legilimens-thought').value.trim();
+  if (!thought) {
+      customAlert("请填写你此刻的想法或伪装的画面！");
+      return;
+  }
+  
+  document.getElementById('legilimensOverlay').style.display = 'none';
+  
+  let actionText = "";
+  if (useOcclumency) {
+      actionText = `*(迅速施展大脑封闭术，将真实的思绪沉入深海，表面上伪装出这样的想法让对方读取)*：\n"${thought}"`;
+  } else {
+      actionText = `*(防线被攻破，毫无保留地被对方读取到了此刻真实的内心想法)*：\n"${thought}"`;
+  }
+  
+  // 直接将这个想法发送到时间线
+  const inputEl = document.getElementById('user-action-input');
+  executeUserAction(actionText, inputEl, actionText);
+  
+  // 自动触发AI响应
+  setTimeout(() => {
+      triggerAI();
+  }, 500);
+}
+
+function closeLegilimens() {
+  document.getElementById('legilimensOverlay').style.display = 'none';
+}
+
+function syncEraHeader() {
+  const val = document.getElementById('p-era').value;
+  document.getElementById('headerEraTitle').innerText = val === 'riddle' ? "里德尔时代 (1943)" : "亲时代 (1976)";
+  const locText = document.getElementById('headerLocText');
+  if (locText) {
+      // 仅在初始切换时代时重置地点，不覆盖AI更新的地点
+      if (document.getElementById('timeline-content').children.length === 0) {
+          locText.innerText = val === 'riddle' ? "斯拉格霍恩地下长桌" : "霍格莫德三把扫帚";
+      }
+  }
+}
+
+function selectFolder(key) {
+  document.querySelectorAll('.folder-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`fbtn-${key}`).classList.add('active');
+  
+  currentFolder = key;
+  if (promptFiles[currentFolder].length > 0) {
+    currentFileId = promptFiles[currentFolder][0].id;
+  }
+  renderFileList();
+}
+
+function selectFile() {
+  currentFileId = document.getElementById('file-selector').value;
+  const file = promptFiles[currentFolder].find(f => f.id === currentFileId);
+  if (file) {
+    document.getElementById('prompt-box').value = file.content;
+  }
+}
+
+function saveCurrentFile() {
+  if (!currentFileId) return;
+  const file = promptFiles[currentFolder].find(f => f.id === currentFileId);
+  if (file) {
+    file.content = document.getElementById('prompt-box').value;
+  }
+}
+
+function addFile() {
+  customPrompt("请输入新Prompt文件的名称：", "新设定文件", (name) => {
+    if (name && name.trim()) {
+      const newId = 'f_' + Date.now();
+      promptFiles[currentFolder].push({ id: newId, name: name.trim(), content: "" });
+      currentFileId = newId;
+      renderFileList();
+    }
+  });
+}
+
+function deleteFile() {
+  if (promptFiles[currentFolder].length === 0) return;
+  customConfirm("确定要删除当前选中的Prompt文件吗？", () => {
+    promptFiles[currentFolder] = promptFiles[currentFolder].filter(f => f.id !== currentFileId);
+    if (promptFiles[currentFolder].length > 0) {
+      currentFileId = promptFiles[currentFolder][0].id;
+    } else {
+      currentFileId = null;
+    }
+    renderFileList();
+  });
+}
+
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (['txt', 'json'].includes(ext)) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('script-outline').value = e.target.result;
+      customAlert(`成功导入文件：${file.name}`);
+    };
+    reader.readAsText(file);
+  } else if (['doc', 'docx'].includes(ext)) {
+    // 纯前端解析Word较复杂，此处做模拟提取提示
+    customAlert(`已读取Word文件：${file.name} (模拟提取文本)`);
+    document.getElementById('script-outline').value = `[从 ${file.name} 提取的剧本内容...]`;
+  } else {
+    customAlert("不支持的文件格式！请上传 txt, json, doc 或 docx 文件。");
+  }
+  event.target.value = ''; // 重置input
+}
+
+async function fetchModels(event) {
+  const btn = event ? (event.currentTarget || event.target) : document.querySelector('button[onclick*="fetchModels"]');
+  const originalText = btn ? btn.innerText : '拉取模型';
+  
+  const apiUrlInput = document.getElementById('api-url').value.trim();
+  const apiKey = document.getElementById('api-key').value.trim();
+
+  if (!apiUrlInput) {
+      customAlert("请先填写 API URL Base");
+      return;
+  }
+  if (!apiKey || apiKey.includes('xxx')) {
+      customAlert("请先填写有效的 API KEY");
+      return;
+  }
+
+  btn.innerText = "拉取中...";
+  btn.disabled = true;
+
+  try {
+      let baseUrl = apiUrlInput;
+      if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
+      if (baseUrl.endsWith('/chat/completions')) baseUrl = baseUrl.replace('/chat/completions', '');
+
+      const response = await fetch(`${baseUrl}/models`, {
+          method: 'GET',
+          headers: {
+              'Authorization': `Bearer ${apiKey}`
+          }
+      });
+
+      if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data && data.data && Array.isArray(data.data)) {
+          const select = document.getElementById('api-model');
+          select.innerHTML = '';
+          
+          const models = data.data.map(m => m.id).sort();
+          models.forEach(modelId => {
+              const opt = document.createElement('option');
+              opt.value = modelId;
+              opt.innerText = modelId;
+              select.appendChild(opt);
+          });
+          
+          customAlert(`成功拉取 ${models.length} 个模型！`);
+      } else {
+          throw new Error("返回数据格式不正确，未找到 models 列表");
+      }
+  } catch (error) {
+      customAlert("拉取模型失败：" + error.message);
+  } finally {
+      if (btn) {
+          btn.innerText = originalText;
+          btn.disabled = false;
+      }
+  }
+}
+
+// ==========================================
+// 本地存储引擎 (LocalStorage)
+// ==========================================
+const STORE_KEY = 'hp_echoes_data_v2';
+const SAVES_KEY = 'hp_echoes_saves';
+
+const MemoryStore = {};
+function safeSetItem(key, val) {
+    try { window.localStorage.setItem(key, val); } catch(e) { MemoryStore[key] = val; }
+}
+function safeGetItem(key) {
+    try { return window.localStorage.getItem(key) || MemoryStore[key]; } catch(e) { return MemoryStore[key]; }
+}
+
+function getCurrentData() {
+    const bgEl = document.querySelectorAll('#panel-persona .form-textarea');
+    const bgValue = bgEl.length > 0 ? bgEl[bgEl.length - 1].value : "";
+    return {
+        persona: {
+            name: document.getElementById('p-name') ? document.getElementById('p-name').value : "",
+            blood: document.getElementById('p-blood') ? document.getElementById('p-blood').value : "",
+            era: document.getElementById('p-era') ? document.getElementById('p-era').value : "",
+            script: document.getElementById('script-outline') ? document.getElementById('script-outline').value : "",
+            others: document.getElementById('other-characters') ? document.getElementById('other-characters').value : "",
+            bg: bgValue,
+            tags: Array.from(document.querySelectorAll('#target-character-tags .char-tag')).map(el => ({
+                text: el.innerText,
+                selected: el.classList.contains('selected')
+            }))
+        },
+        api: {
+            url: document.getElementById('api-url') ? document.getElementById('api-url').value : "",
+            key: document.getElementById('api-key') ? document.getElementById('api-key').value : "",
+            model: document.getElementById('api-model') ? document.getElementById('api-model').value : ""
+        },
+        location: document.getElementById('headerLocText') ? document.getElementById('headerLocText').innerText : "",
+        prompts: promptFiles,
+        timeline: document.getElementById('timeline-content') ? document.getElementById('timeline-content').innerHTML : ""
+    };
+}
+
+function applyData(data) {
+    if (!data) return;
+    if (data.persona) {
+        if(data.persona.name && document.getElementById('p-name')) document.getElementById('p-name').value = data.persona.name;
+        if(data.persona.blood && document.getElementById('p-blood')) document.getElementById('p-blood').value = data.persona.blood;
+        if(data.persona.era && document.getElementById('p-era')) document.getElementById('p-era').value = data.persona.era;
+        if(data.persona.script && document.getElementById('script-outline')) document.getElementById('script-outline').value = data.persona.script;
+        if(data.persona.others && document.getElementById('other-characters')) document.getElementById('other-characters').value = data.persona.others;
+        if(data.persona.bg) {
+            const bgEls = document.querySelectorAll('#panel-persona .form-textarea');
+            if (bgEls.length > 0) bgEls[bgEls.length - 1].value = data.persona.bg;
+        }
+        
+        if (data.persona.tags && data.persona.tags.length > 0) {
+            const container = document.getElementById('target-character-tags');
+            if (container) {
+                container.innerHTML = '';
+                data.persona.tags.forEach(t => {
+                    const div = document.createElement('div');
+                    div.className = 'char-tag' + (t.selected ? ' selected' : '');
+                    div.innerText = t.text;
+                    div.onclick = function() { toggleTag(this); };
+                    container.appendChild(div);
+                });
+            }
+        }
+    }
+    if (data.api) {
+        if(data.api.url) document.getElementById('api-url').value = data.api.url;
+        if(data.api.key) document.getElementById('api-key').value = data.api.key;
+        if(data.api.model) {
+            const sel = document.getElementById('api-model');
+            if (!Array.from(sel.options).find(o => o.value === data.api.model)) {
+                const opt = document.createElement('option');
+                opt.value = data.api.model;
+                opt.innerText = data.api.model;
+                sel.appendChild(opt);
+            }
+            sel.value = data.api.model;
+        }
+    }
+    if (data.prompts) {
+        Object.keys(data.prompts).forEach(key => {
+            if (promptFiles[key]) promptFiles[key] = data.prompts[key];
+        });
+        renderFileList();
+    }
+    if (data.location && document.getElementById('headerLocText')) {
+        document.getElementById('headerLocText').innerText = data.location;
+    }
+    if (data.timeline) {
+        document.getElementById('timeline-content').innerHTML = data.timeline;
+        if (data.timeline.trim().length > 10) {
+            document.getElementById('homeScreen').style.display = 'none';
+            document.getElementById('btn-show-home').style.display = 'none';
+            syncEraHeader();
+        }
+        // 读档后自动滚动到最新剧情（底部）
+        setTimeout(() => {
+            const vp = document.querySelector('.app-viewport');
+            if(vp) vp.scrollTop = vp.scrollHeight;
+        }, 50);
+    }
+}
+
+function saveToLocal() {
+    try {
+        safeSetItem(STORE_KEY, JSON.stringify(getCurrentData()));
+    } catch(e) {}
+}
+
+function loadFromLocal() {
+    try {
+        const raw = safeGetItem(STORE_KEY);
+        if (!raw) return;
+        applyData(JSON.parse(raw));
+    } catch (e) {}
+}
+
+// === 多槽位命名存档/读档系统 ===
+function manualSave() {
+    const defaultName = "记忆切片 - " + new Date().toLocaleString('zh-CN', {hour12: false});
+    customPrompt("请为这段记忆命名：", defaultName, (name) => {
+        if (!name) return;
+        try {
+            const saves = JSON.parse(safeGetItem(SAVES_KEY) || '[]');
+            saves.push({
+                id: Date.now().toString(),
+                name: name,
+                time: new Date().toLocaleString('zh-CN', {hour12: false}),
+                data: getCurrentData()
+            });
+            safeSetItem(SAVES_KEY, JSON.stringify(saves));
+            customAlert("记忆已封存入冥想盆！");
+        } catch(e) {
+            customAlert("记忆封存失败：" + e.message);
+        }
+    });
+}
+
+function manualLoad() {
+    let saves = [];
+    try {
+        saves = JSON.parse(safeGetItem(SAVES_KEY) || '[]');
+    } catch(e) {}
+    if (saves.length === 0) {
+        customAlert("冥想盆中空空如也，暂无存档。");
+        return;
+    }
+    
+    let html = '<div style="max-height: 300px; overflow-y: auto; text-align: left; display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">';
+    [...saves].reverse().forEach(save => {
+        html += `
+        <div style="background: var(--bg-input); padding: 10px; border-radius: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+            <div style="flex: 1; overflow: hidden;">
+                <div style="font-size: 13px; font-weight: bold; color: var(--text-primary); white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${save.name}</div>
+                <div style="font-size: 10px; color: var(--text-dim); margin-top: 4px;">${save.time}</div>
+            </div>
+            <div style="display: flex; gap: 6px; margin-left: 10px;">
+                <button class="hp-btn" style="padding: 4px 10px; font-size: 11px; background: var(--gold); color: #fff;" onclick="executeLoad('${save.id}')">回溯</button>
+                <button class="hp-btn" style="padding: 4px 10px; font-size: 11px; background: transparent; color: var(--gryffindor); border: 1px solid var(--gryffindor);" onclick="executeDeleteSave('${save.id}')">销毁</button>
+            </div>
+        </div>`;
+    });
+    html += '</div>';
+    
+    document.getElementById('modalTitleText').innerText = '冥想盆记忆索引';
+    document.getElementById('modalContent').innerHTML = html;
+    document.getElementById('modalInput').style.display = 'none';
+    document.getElementById('modalCancelBtn').style.display = 'block';
+    
+    // 隐藏确认按钮，只留取消按钮用于关闭窗口
+    const confirmBtn = document.getElementById('modalConfirmBtn');
+    confirmBtn.style.display = 'none';
+    
+    modalCallback = () => {
+        confirmBtn.style.display = 'block'; // 弹窗关闭后恢复确认按钮
+    };
+    document.getElementById('customModal').style.display = 'flex';
+}
+
+function executeLoad(id) {
+    let saves = [];
+    try { saves = JSON.parse(safeGetItem(SAVES_KEY) || '[]'); } catch(e) {}
+    const save = saves.find(s => s.id === id);
+    if (save) {
+        applyData(save.data);
+        closeModal(false);
+        customAlert(`已回溯至记忆：${save.name}`);
+    }
+}
+
+function executeDeleteSave(id) {
+    customConfirm("确定要彻底销毁这段记忆吗？", () => {
+        try {
+            let saves = JSON.parse(safeGetItem(SAVES_KEY) || '[]');
+            saves = saves.filter(s => s.id !== id);
+            safeSetItem(SAVES_KEY, JSON.stringify(saves));
+            manualLoad(); // 重新渲染列表
+        } catch(e) {}
+    });
+}
+
+// 初始化时读取数据
+window.addEventListener('DOMContentLoaded', () => {
+    try { loadFromLocal(); } catch(e) {}
+    // 每 2 秒自动保存一次表单输入状态，防止丢失
+    setInterval(() => {
+        try { saveToLocal(); } catch(e) {}
+    }, 2000);
+});
+
+// 后台被清理或页面隐藏时自动存档
+window.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+        try { saveToLocal(); } catch(e) {}
+    }
+});
+window.addEventListener('pagehide', () => {
+    try { saveToLocal(); } catch(e) {}
+});
+</script>
+</body>
+</html>
